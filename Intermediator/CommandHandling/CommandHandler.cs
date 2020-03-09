@@ -1,5 +1,5 @@
-﻿using IntermediatorBotSample.MessageRouting;
-using IntermediatorBotSample.Resources;
+﻿using Intermediator.MessageRouting;
+using Intermediator.Resources;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Connector;
 using Microsoft.Bot.Schema;
@@ -12,7 +12,7 @@ using Underscore.Bot.MessageRouting.DataStore;
 using Underscore.Bot.MessageRouting.Models;
 using Underscore.Bot.MessageRouting.Results;
 
-namespace IntermediatorBotSample.CommandHandling
+namespace Intermediator.CommandHandling
 {
     /// <summary>
     /// Handler for bot commands related to message routing.

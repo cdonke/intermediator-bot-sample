@@ -1,5 +1,5 @@
 ﻿using IntermediatorBotSample.Bot;
-using IntermediatorBotSample.Middleware;
+using Intermediator.Middleware;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Bot.Builder;
@@ -74,7 +74,7 @@ namespace IntermediatorBotSample
                 // IStorage dataStore = new Microsoft.Bot.Builder.Azure.AzureBlobStorage("AzureBlobConnectionString", "containerName");
 
                 // Handoff middleware
-                options.Middleware.Add(new HandoffMiddleware(Configuration));
+                options.Middleware.Add(new Middleware.HandoffMiddleware(Configuration));
             });
 
             services.AddMvc(); // Required Razor pages

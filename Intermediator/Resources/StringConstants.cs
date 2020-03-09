@@ -1,4 +1,4 @@
-﻿namespace IntermediatorBotSample.Resources
+﻿namespace Intermediator.Resources
 {
     public class StringConstants
     {

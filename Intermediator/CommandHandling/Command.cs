@@ -7,7 +7,7 @@ using System.Text;
 using Underscore.Bot.MessageRouting.DataStore;
 using Underscore.Bot.MessageRouting.Models;
 
-namespace IntermediatorBotSample.CommandHandling
+namespace Intermediator.CommandHandling
 {
     /// <summary>
     /// The commands.

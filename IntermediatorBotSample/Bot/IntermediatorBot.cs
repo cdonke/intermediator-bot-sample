@@ -1,4 +1,4 @@
-﻿using IntermediatorBotSample.CommandHandling;
+﻿using Intermediator.CommandHandling;
 using Microsoft.Bot;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Schema;
