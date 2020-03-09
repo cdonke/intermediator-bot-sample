@@ -90,7 +90,7 @@ namespace Intermediator.Middleware
             MessageLogs = new MessageLogs(connectionString);
         }
 
-        public abstract Task<bool> HandleToHumanAsync(Activity activity);
+        public abstract Task<bool> ShouldHandleToHumanAsync(ITurnContext turnContext, Activity activity);
 
         public async Task OnTurnAsync(ITurnContext context, NextDelegate next, CancellationToken ct)
         {
@@ -124,11 +124,10 @@ namespace Intermediator.Middleware
                         // is not connected (in a 1:1 conversation) with a human
                         // (e.g. customer service agent) yet.
 
-                        // Check for cry for help (agent assistance)
-                        //if (!string.IsNullOrWhiteSpace(activity.Text)
-                        //    && activity.Text.ToLower().Contains("human"))
-                        if (await HandleToHumanAsync(activity))
+                        // Check the need for agent assistance
+                        if (await ShouldHandleToHumanAsync(context, activity))
                         {
+                            
                             // Create a connection request on behalf of the sender
                             // Note that the returned result must be handled
                             messageRouterResult = MessageRouter.CreateConnectionRequest(

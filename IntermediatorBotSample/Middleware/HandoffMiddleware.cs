@@ -1,4 +1,6 @@
-﻿using Microsoft.Bot.Schema;
+﻿using Microsoft.Bot.Builder;
+using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Schema;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -11,9 +13,9 @@ namespace IntermediatorBotSample.Middleware
     {
         public HandoffMiddleware(IConfiguration configuration) : base(configuration) { }
 
-        public override Task<bool> HandleToHumanAsync(Activity activity)
+        public override  Task<bool> ShouldHandleToHumanAsync(ITurnContext turnContext, Activity activity)
         {
-            return Task.FromResult(!string.IsNullOrWhiteSpace(activity.Text) && activity.Text.ToLower().Contains("human"));
+            return Task.FromResult(false);
         }
     }
 }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace IntermediatorBotSample.Bot
 {
-    public class IntermediatorBot : IBot
+    public class IntermediatorBot : ActivityHandler
     {
         private const string SampleUrl = "https://github.com/tompaana/intermediator-bot-sample";
 
