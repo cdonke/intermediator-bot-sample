@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace IntermediatorBotSample.Bot
 {
-    public class IntermediatorBot : ActivityHandler
+    public class IntermediatorBot : IBot
     {
         private const string SampleUrl = "https://github.com/tompaana/intermediator-bot-sample";
 
@@ -36,5 +36,7 @@ namespace IntermediatorBotSample.Bot
             replyActivity.Attachments = new List<Attachment>() { heroCard.ToAttachment() };
             await context.SendActivityAsync(replyActivity);
         }
+
+        
     }
 }
