@@ -109,7 +109,7 @@ namespace IntermediatorBotSample.Dialogs
                 case "l_Airline_Reservation":
                     return await ProcessAirlineReservationAsync(stepContext, recognizerResult.Properties["luisResult"] as LuisResult, cancellationToken);
                 case "q_Faq":
-                    return await ProcessFaqAsync(stepContext, recognizerResult.Properties["luisResult"] as LuisResult, cancellationToken);
+                    return await ProcessFaqAsync(stepContext, cancellationToken);
                 default:
                     _logger.LogInformation($"Dispatch unrecognized intent: {intent}.");
                     await stepContext.Context.SendActivityAsync(MessageFactory.Text($"Dispatch unrecognized intent: {intent}."), cancellationToken);
@@ -117,7 +117,7 @@ namespace IntermediatorBotSample.Dialogs
             }
         }
 
-        private async Task<DialogTurnResult> ProcessFaqAsync(WaterfallStepContext stepContext, LuisResult luisResult, CancellationToken cancellationToken)
+        private async Task<DialogTurnResult> ProcessFaqAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
         {
             _logger.LogInformation("ProcessFaqAsync");
 

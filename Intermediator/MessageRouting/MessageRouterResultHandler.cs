@@ -162,7 +162,7 @@ namespace Intermediator.MessageRouting
                         }
 
                         if (connection.ConversationReference2 != null)
-                        {                            
+                        {
                             await _messageRouter.SendMessageAsync(
                                 connection.ConversationReference2,
                                 string.Format(Strings.NotifyOwnerConnected,
