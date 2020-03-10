@@ -13,9 +13,9 @@ namespace IntermediatorBotSample.Middleware
     {
         public HandoffMiddleware(IConfiguration configuration) : base(configuration) { }
 
-        public override  Task<bool> ShouldHandleToHumanAsync(ITurnContext turnContext, Activity activity)
+        public override Task<bool> ShouldHandleToHumanAsync(ITurnContext turnContext, Activity activity)
         {
-            return Task.FromResult(false);
+            return Task.FromResult(!string.IsNullOrWhiteSpace(activity.Text) && activity.Text.ToLower().Contains("human"));
         }
     }
 }
