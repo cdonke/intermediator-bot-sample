@@ -1,0 +1,18 @@
+{
+    "name": "Intermediator",
+    "description": "",
+    "services": [
+        {
+            "type": "endpoint",
+            "appId": "90a5b651-1cf0-4ef8-91aa-f189c06b5584",
+            "appPassword": "LUGmCrMYPc5MSuxfAE5CUw==!EJuNQBBUPX8q0sfmIlEJZeqn77zZzY4861UrnzVxwvmdLOhKZEwAyf/Rv+9XKyUC",
+            "endpoint": "http://localhost:29211/api/messages",
+            "id": "536731e0-62c6-11ea-a41c-7f8355893613",
+            "name": "http://localhost:29211/api/messages"
+        }
+    ],
+    "padlock": "69f199zZZKylTKz4bKb6OQ==!RJ81iEgCk0IFaPESSxorxJ4O9Vq3IBCHibnj4Obaq74N64nBfl/K9sLrlzNyrTYw",
+    "version": "2.0",
+    "overrides": null,
+    "path": "C:\\Projects\\cdonke\\intermediator-bot-sample\\IntermediatorBotSample\\Intermediator.bot"
+}

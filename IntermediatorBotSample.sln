@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntermediatorBotSample", "I
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Intermediator", "Intermediator\Intermediator.csproj", "{B0E70620-2E9A-4019-9F68-F880D0EDA774}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMessageRouting", "..\bot-message-routing\BotMessageRouting\BotMessageRouting.csproj", "{CC995DC6-F673-40EA-8925-45FA0DBE87FF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{B0E70620-2E9A-4019-9F68-F880D0EDA774}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B0E70620-2E9A-4019-9F68-F880D0EDA774}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B0E70620-2E9A-4019-9F68-F880D0EDA774}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC995DC6-F673-40EA-8925-45FA0DBE87FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC995DC6-F673-40EA-8925-45FA0DBE87FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC995DC6-F673-40EA-8925-45FA0DBE87FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC995DC6-F673-40EA-8925-45FA0DBE87FF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

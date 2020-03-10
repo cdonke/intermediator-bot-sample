@@ -1,12 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BotMessageRouting" Version="2.0.2-alpha" />
     <PackageReference Include="Microsoft.Bot.Builder" Version="4.7.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\bot-message-routing\BotMessageRouting\BotMessageRouting.csproj" />
   </ItemGroup>
 
   <ItemGroup>
