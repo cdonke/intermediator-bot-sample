@@ -16,7 +16,7 @@ namespace Intermediator.MessageRouting
     /// </summary>
     public class MessageRouterResultHandler
     {
-        private MessageRouter _messageRouter;
+        private readonly MessageRouter _messageRouter;
 
         public MessageRouterResultHandler(MessageRouter messageRouter)
         {
@@ -147,7 +147,7 @@ namespace Intermediator.MessageRouting
         protected virtual async Task<bool> HandleConnectionResultAsync(ConnectionResult connectionResult)
         {
             Connection connection = connectionResult.Connection;
-            
+
             switch (connectionResult.Type)
             {
                 case ConnectionResultType.Connected:
