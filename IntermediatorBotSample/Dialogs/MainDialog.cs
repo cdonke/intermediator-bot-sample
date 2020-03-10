@@ -1,10 +1,13 @@
 ﻿using Intermediator.CommandHandling;
+using IntermediatorBotSample.Services;
+using Microsoft.Azure.CognitiveServices.Language.LUIS.Runtime.Models;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.AI.QnA;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Dialogs.Choices;
 using Microsoft.Bot.Schema;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,13 +19,15 @@ namespace IntermediatorBotSample.Dialogs
 {
     public class MainDialog : ComponentDialog
     {
-        private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
+        private readonly IBotServices _botServices;
+        private readonly ILogger<MainDialog> _logger;
 
-        public MainDialog(IHttpClientFactory httpClientFactory, IConfiguration configuration) : base(nameof(MainDialog))
+        public MainDialog(IConfiguration configuration, Services.IBotServices botServices, ILogger<MainDialog> logger) : base(nameof(MainDialog))
         {
-            _httpClientFactory = httpClientFactory;
             _configuration = configuration;
+            _botServices = botServices;
+            _logger = logger;
 
             var waterfallSteps = new WaterfallStep[]
             {
@@ -69,31 +74,13 @@ namespace IntermediatorBotSample.Dialogs
 
         private async Task<DialogTurnResult> MakeAQuestion(WaterfallStepContext stepContext, CancellationToken cancellationToken)
         {
-            var httpClient = _httpClientFactory.CreateClient();
+            var recognizerResult = await _botServices.Dispatch.RecognizeAsync(stepContext.Context, cancellationToken);
 
-            var qnaMaker = new QnAMaker(new QnAMakerEndpoint
-            {
-                KnowledgeBaseId = _configuration["QnAMaker:KnowledgebaseId"],
-                EndpointKey = _configuration["QnAMaker:EndpointKey"],
-                Host = _configuration["QnAMaker:Host"]
-            },
-            null,
-            httpClient);
+            // Top intent tell us which cognitive service to use.
+            var topIntent = recognizerResult.GetTopScoringIntent();
 
-            var options = new QnAMakerOptions { Top = 1, ScoreThreshold = .7f };
-
-            // The actual call to the QnA Maker service.
-            var response = await qnaMaker.GetAnswersAsync(stepContext.Context, options);
-            if (response != null && response.Length > 0)
-            {
-                await stepContext.Context.SendActivityAsync(MessageFactory.Text(response[0].Answer), cancellationToken);
-                return await stepContext.NextAsync(true);
-            }
-            else
-            {
-                await stepContext.Context.SendActivityAsync(MessageFactory.Text("Could not find any answers."), cancellationToken);
-                return await stepContext.NextAsync(false);
-            }
+            // Next, we call the dispatcher with the top intent.
+            return await DispatchToTopIntentAsync(stepContext, topIntent.intent, recognizerResult, cancellationToken);
         }
 
         private async Task<DialogTurnResult> TalkToHumanAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
@@ -114,5 +101,58 @@ namespace IntermediatorBotSample.Dialogs
             return await stepContext.EndDialogAsync();
         }
 
+
+        private async Task<DialogTurnResult> DispatchToTopIntentAsync(WaterfallStepContext stepContext, string intent, RecognizerResult recognizerResult, CancellationToken cancellationToken)
+        {
+            switch (intent)
+            {
+                case "l_Airline_Reservation":
+                    return await ProcessAirlineReservationAsync(stepContext, recognizerResult.Properties["luisResult"] as LuisResult, cancellationToken);
+                case "q_Faq":
+                    return await ProcessFaqAsync(stepContext, recognizerResult.Properties["luisResult"] as LuisResult, cancellationToken);
+                default:
+                    _logger.LogInformation($"Dispatch unrecognized intent: {intent}.");
+                    await stepContext.Context.SendActivityAsync(MessageFactory.Text($"Dispatch unrecognized intent: {intent}."), cancellationToken);
+                    return await stepContext.NextAsync(false);
+            }
+        }
+
+        private async Task<DialogTurnResult> ProcessFaqAsync(WaterfallStepContext stepContext, LuisResult luisResult, CancellationToken cancellationToken)
+        {
+            _logger.LogInformation("ProcessFaqAsync");
+
+            var results = await _botServices.QnA.GetAnswersAsync(stepContext.Context);
+            if (results.Any())
+            {
+                await stepContext.Context.SendActivityAsync(MessageFactory.Text(results.First().Answer), cancellationToken);
+                return await stepContext.NextAsync(true);
+            }
+            else
+            {
+                await stepContext.Context.SendActivityAsync(MessageFactory.Text("Sorry, could not find an answer in the Q and A system."), cancellationToken);
+                return await stepContext.NextAsync(false);
+            }
+        }
+
+        private async Task<DialogTurnResult> ProcessAirlineReservationAsync(WaterfallStepContext stepContext, LuisResult luisResult, CancellationToken cancellationToken)
+        {
+            _logger.LogInformation("ProcessAirlineReservationAsync");
+
+            var recognizerResult = await _botServices.Luis.RecognizeAsync(stepContext.Context, cancellationToken);
+            var result = recognizerResult.Properties["luisResult"] as LuisResult;
+            var topIntent = result.TopScoringIntent.Intent;
+
+            await stepContext.Context.SendActivityAsync(MessageFactory.Text($"Airline Reservation top intent {topIntent}."), cancellationToken);
+            if (result.Entities.Count > 0)
+            {
+                await stepContext.Context.SendActivityAsync(MessageFactory.Text($"Airline Reservation entities were found in the message:\n\n{string.Join("\n\n", result.Entities.Select(i => $"{i.Type}={i.Entity}"))}"), cancellationToken);
+            }
+            if (result.CompositeEntities?.Count > 0)
+            {
+                await stepContext.Context.SendActivityAsync(MessageFactory.Text($"Airline Reservation composite entities were found in the message:\n\n{string.Join("\n\n", result.CompositeEntities.Select(i => $"{i.ParentType}={i.Value}"))}"), cancellationToken);
+            }
+
+            return await stepContext.NextAsync(true);
+        }
     }
 }

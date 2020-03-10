@@ -253,3 +253,4 @@ paket-files/
 
 # Package and web configs
 #*.config
+/IntermediatorBotSample/data

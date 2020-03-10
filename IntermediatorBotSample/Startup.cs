@@ -54,7 +54,7 @@ namespace IntermediatorBotSample
 
             // Create the bot as a transient. In this case the ASP Controller is expecting an IBot.
             services.AddTransient<IBot, IntermediatorBot<Dialogs.MainDialog>>();
-
+            services.AddSingleton<Services.IBotServices, Services.DispatcherService>();
 
             // Add the HttpClientFactory to be used for the QnAMaker calls.
             services.AddHttpClient();
