@@ -1,6 +1,7 @@
 ﻿using Intermediator.CommandHandling;
 using Microsoft.Bot;
 using Microsoft.Bot.Builder;
+using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Schema;
 using System.Collections.Generic;
 using System.Threading;
@@ -8,35 +9,31 @@ using System.Threading.Tasks;
 
 namespace IntermediatorBotSample.Bot
 {
-    public class IntermediatorBot : IBot
+    public class IntermediatorBot<T> : ActivityHandler
+        where T : Dialog
     {
         private const string SampleUrl = "https://github.com/tompaana/intermediator-bot-sample";
 
-        public async Task OnTurnAsync(ITurnContext context, CancellationToken ct)
+        protected readonly Dialog Dialog;
+        protected readonly BotState ConversationState;
+
+        public IntermediatorBot(ConversationState conversationState, T dialog)
         {
-            Command showOptionsCommand = new Command(Commands.ShowOptions);
-
-            HeroCard heroCard = new HeroCard()
-            {
-                Title = "Hello!",
-                Subtitle = "I am Intermediator Bot",
-                Text = $"My purpose is to serve as a sample on how to implement the human hand-off. Click/tap the button below or type \"{new Command(Commands.ShowOptions).ToString()}\" to see all possible commands. To learn more visit <a href=\"{SampleUrl}\">{SampleUrl}</a>.",
-                Buttons = new List<CardAction>()
-                {
-                    new CardAction()
-                    {
-                        Title = "Show options",
-                        Value = showOptionsCommand.ToString(),
-                        Type = ActionTypes.ImBack
-                    }
-                }
-            };
-
-            Activity replyActivity = context.Activity.CreateReply();
-            replyActivity.Attachments = new List<Attachment>() { heroCard.ToAttachment() };
-            await context.SendActivityAsync(replyActivity);
+            Dialog = dialog;
+            ConversationState = conversationState;
         }
 
+        public override async Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            await base.OnTurnAsync(turnContext, cancellationToken);
+
+            // Save any state changes that might have occured during the turn.
+            await ConversationState.SaveChangesAsync(turnContext, false, cancellationToken);
+        }
         
+        protected override async Task OnMessageActivityAsync(ITurnContext<IMessageActivity> turnContext, CancellationToken cancellationToken)
+        {
+            await Dialog.RunAsync(turnContext, ConversationState.CreateProperty<DialogState>(nameof(DialogState)), cancellationToken);
+        }
     }
 }
