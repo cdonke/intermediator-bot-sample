@@ -27,6 +27,7 @@ namespace IntermediatorBotSample
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
+                .AddUserSecrets<Startup>()
                 .AddEnvironmentVariables();
 
             Configuration = builder.Build();
@@ -41,7 +42,24 @@ namespace IntermediatorBotSample
             services.AddMvc().AddControllersAsServices();
             services.AddSingleton(_ => Configuration);
 
-            services.AddBot<IntermediatorBot>(options =>
+
+            // Create the storage we'll be using for User and Conversation state. (Memory is great for testing purposes.)
+            services.AddSingleton<IStorage, MemoryStorage>();
+
+            // Create the Conversation state. (Used by the Dialog system itself.)
+            services.AddSingleton<ConversationState>();
+
+            // The Dialog that will be run by the bot.
+            services.AddSingleton<Dialogs.MainDialog>();
+
+            // Create the bot as a transient. In this case the ASP Controller is expecting an IBot.
+            services.AddTransient<IBot, IntermediatorBot<Dialogs.MainDialog>>();
+
+
+            // Add the HttpClientFactory to be used for the QnAMaker calls.
+            services.AddHttpClient();
+
+            services.AddBot<IntermediatorBot<Dialogs.MainDialog>>(options =>
             {
                 options.CredentialProvider = new ConfigurationCredentialProvider(Configuration);
 
@@ -53,12 +71,15 @@ namespace IntermediatorBotSample
                 options.Middleware.Add(new CatchExceptionMiddleware<Exception>(async (context, exception) =>
                 {
                     await context.TraceActivityAsync("Bot Exception", exception);
-                    await context.SendActivityAsync($"Sorry, it looks like something went wrong: {exception.Message}");
+                    await context.SendActivityAsync($"Sorry, it looks like something went wrong:{exception.Message}");
+#if DEBUG
+                    await context.SendActivityAsync($"Stack trace:\n{exception.ToString()}");
+#endif
                 }));
 
                 // The Memory Storage used here is for local bot debugging only. When the bot
                 // is restarted, anything stored in memory will be gone. 
-                IStorage dataStore = new MemoryStorage();
+                //IStorage dataStore = new MemoryStorage();
 
                 // The File data store, shown here, is suitable for bots that run on 
                 // a single machine and need durable state across application restarts.                 
