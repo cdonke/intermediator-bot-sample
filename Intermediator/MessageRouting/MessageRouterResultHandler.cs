@@ -162,7 +162,7 @@ namespace Intermediator.MessageRouting
                         }
 
                         if (connection.ConversationReference2 != null)
-                        {
+                        {                            
                             await _messageRouter.SendMessageAsync(
                                 connection.ConversationReference2,
                                 string.Format(Strings.NotifyOwnerConnected,
@@ -189,6 +189,14 @@ namespace Intermediator.MessageRouting
                                 connection.ConversationReference2,
                                 string.Format(Strings.NotifyClientDisconnected,
                                     GetNameOrId(connection.ConversationReference1)));
+
+                            IMessageActivity messageActivity = Activity.CreateMessageActivity();
+                            messageActivity.Type = ActivityTypes.EndOfConversation;
+                            await _messageRouter.SendMessageAsync(
+                                connection.ConversationReference2,
+                                messageActivity
+                                );
+
                         }
                     }
 
