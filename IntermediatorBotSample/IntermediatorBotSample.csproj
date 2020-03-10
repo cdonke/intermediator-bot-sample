@@ -2,11 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
+    <UserSecretsId>90906ad7-fca9-41cd-9256-589fe64b8006</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.Bot.Builder.AI.QnA" Version="4.7.2" />
     <PackageReference Include="Microsoft.Bot.Builder.Dialogs" Version="4.7.2" />
     
     
