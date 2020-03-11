@@ -151,6 +151,8 @@ namespace Intermediator.Middleware
                 // Handle the result, if necessary
                 await MessageRouterResultHandler.HandleResultAsync(messageRouterResult);
             }
+            else
+                await next(ct).ConfigureAwait(false);
         }
 
         /// <summary>
