@@ -1,0 +1,39 @@
+{
+  "authoringRegion": "westus",
+  "culture": "en-us",
+  "hierarchical": true,
+  "useAllTrainingData": false,
+  "dontReviseUtterance": false,
+  "copyLuisData": true,
+  "normalizeDiacritics": true,
+  "services": [
+    {
+      "includeAnswersForTraining": true,
+      "includePrompts": true,
+      "kbId": "7de119da-8572-4441-a459-8ead995d901d",
+      "subscriptionKey": "714cd4d37b5343a7b5da937a7d3f0bcb",
+      "type": "qna",
+      "name": "Faq",
+      "id": "1"
+    },
+    {
+      "appId": "45b89652-87ab-4d92-95bc-acaf176d792d",
+      "authoringKey": "a6e8a2a6bea74d5e84ec6e2bc27b4fed",
+      "version": "0.1",
+      "region": "westus",
+      "type": "luis",
+      "name": "Airline Reservation",
+      "id": "2"
+    }
+  ],
+  "serviceIds": [
+    "1",
+    "2"
+  ],
+  "appId": "f5371320-6fb7-4892-9be1-1c8ec7b49428",
+  "authoringKey": "a6e8a2a6bea74d5e84ec6e2bc27b4fed",
+  "version": "Dispatch",
+  "region": "westus",
+  "type": "dispatch",
+  "name": "IntermediatorDispatch"
+}

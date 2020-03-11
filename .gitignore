@@ -254,3 +254,5 @@ paket-files/
 # Package and web configs
 #*.config
 /IntermediatorBotSample/data
+/IntermediatorBotSample/Summary.html
+/IntermediatorBotSample/IntermediatorDispatch.json
