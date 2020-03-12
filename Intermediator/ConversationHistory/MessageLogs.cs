@@ -72,11 +72,26 @@ namespace Intermediator.ConversationHistory
         /// </summary>
         /// <param name="activity">The activity to add.</param>
         /// <param name="user">The user associated with the message.</param>
-        public void AddMessageLog(Microsoft.Bot.Schema.Activity activity, ConversationReference user)
+        public async Task AddMessageLog(Microsoft.Bot.Schema.Activity activity, ConversationReference user, bool replace = false)
         {
             if (_messageLogsTable != null)
             {
                 // Add to AzureTable
+                var body = new MessageLog(user);
+                body.AddMessage(activity);
+
+                var msg = new MessageLogEntity
+                {
+                    PartitionKey = PartitionKey,
+                    RowKey = activity.Conversation.Id,
+                    Body = body.ToJson()
+                };
+
+                if (!replace)
+                    await AzureStorageHelper.InsertAsync(_messageLogsTable, msg);
+                else
+                    await AzureStorageHelper.ReplaceAsync(_messageLogsTable, msg);
+
             }
 
             else
