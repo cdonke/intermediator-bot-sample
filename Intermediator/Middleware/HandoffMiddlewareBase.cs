@@ -117,28 +117,36 @@ namespace Intermediator.Middleware
                     // another user/bot
                     messageRouterResult = await MessageRouter.RouteMessageIfSenderIsConnectedAsync(activity);
 
-                    if (messageRouterResult is MessageRoutingResult
-                        && (messageRouterResult as MessageRoutingResult).Type == MessageRoutingResultType.NoActionTaken)
+                    if (messageRouterResult is MessageRoutingResult obj)
                     {
-                        // No action was taken by the message router. This means that the user
-                        // is not connected (in a 1:1 conversation) with a human
-                        // (e.g. customer service agent) yet.
+                        switch (obj.Type)
+                        {
+                            case MessageRoutingResultType.NoActionTaken:
+                                // No action was taken by the message router. This means that the user
+                                // is not connected (in a 1:1 conversation) with a human
+                                // (e.g. customer service agent) yet.
 
-                        // Check the need for agent assistance
-                        if (await ShouldHandleToHumanAsync(context, activity))
-                        {
-                            
-                            // Create a connection request on behalf of the sender
-                            // Note that the returned result must be handled
-                            messageRouterResult = MessageRouter.CreateConnectionRequest(
-                                MessageRouter.CreateSenderConversationReference(activity),
-                                rejectConnectionRequestIfNoAggregationChannel);
+                                // Check the need for agent assistance
+                                if (await ShouldHandleToHumanAsync(context, activity))
+                                {
+
+                                    // Create a connection request on behalf of the sender
+                                    // Note that the returned result must be handled
+                                    messageRouterResult = MessageRouter.CreateConnectionRequest(
+                                        MessageRouter.CreateSenderConversationReference(activity),
+                                        rejectConnectionRequestIfNoAggregationChannel);
+                                }
+                                else
+                                {
+                                    // No action taken - this middleware did not consume the activity so let it propagate
+                                    await next(ct).ConfigureAwait(false);
+                                }
+                                break;
+                            case MessageRoutingResultType.MessageRouted:
+                                //await MessageLogs.AddMessageLog(activity, MessageRouter.CreateSenderConversationReference(activity), true);
+                                break;
                         }
-                        else
-                        {
-                            // No action taken - this middleware did not consume the activity so let it propagate
-                            await next(ct).ConfigureAwait(false);
-                        }
+
                     }
                 }
 
