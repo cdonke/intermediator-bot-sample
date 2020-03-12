@@ -175,12 +175,20 @@ namespace Intermediator.MessageRouting
                 case ConnectionResultType.Disconnected:
                     if (connection != null)
                     {
+                        IMessageActivity messageActivity = Activity.CreateMessageActivity();
+                        messageActivity.Type = ActivityTypes.EndOfConversation;
+
                         if (connection.ConversationReference1 != null)
                         {
                             await _messageRouter.SendMessageAsync(
                                 connection.ConversationReference1,
                                 string.Format(Strings.NotifyOwnerDisconnected,
                                     GetNameOrId(connection.ConversationReference2)));
+
+                            await _messageRouter.SendMessageAsync(
+                                connection.ConversationReference1,
+                                messageActivity
+                                );
                         }
 
                         if (connection.ConversationReference2 != null)
@@ -190,8 +198,7 @@ namespace Intermediator.MessageRouting
                                 string.Format(Strings.NotifyClientDisconnected,
                                     GetNameOrId(connection.ConversationReference1)));
 
-                            IMessageActivity messageActivity = Activity.CreateMessageActivity();
-                            messageActivity.Type = ActivityTypes.EndOfConversation;
+                            
                             await _messageRouter.SendMessageAsync(
                                 connection.ConversationReference2,
                                 messageActivity
