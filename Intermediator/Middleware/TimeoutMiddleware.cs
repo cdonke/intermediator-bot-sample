@@ -21,30 +21,35 @@ namespace Intermediator.Middleware
         private const string KeyAzureTableStorageConnectionString = "AzureTableStorageConnectionString";
         private const string KeyConversationTimeout = "BotConversationTimeout";
 
+        private readonly ILogger<TimeoutMiddleware> _logger;
         private readonly TimeSpan _timeout;
         private readonly MessageRouter _messageRouter;
         private readonly IRoutingDataStore _routingDataStore;
         private readonly IMessageActivity _endOfConversationActivity;
 
-        public TimeoutMiddleware(IConfiguration configuration)
+        public TimeoutMiddleware(IConfiguration configuration, ILoggerFactory loggerFactory)
         {
+            _logger = loggerFactory.CreateLogger<TimeoutMiddleware>();
+
             string connectionString = configuration[KeyAzureTableStorageConnectionString];
             if (string.IsNullOrEmpty(connectionString))
             {
-                System.Diagnostics.Debug.WriteLine($"WARNING!!! No connection string found - using {nameof(InMemoryRoutingDataStore)}");
+                _logger.LogError($"WARNING!!! No connection string found - using {nameof(InMemoryRoutingDataStore)}");
                 _routingDataStore = new InMemoryRoutingDataStore();
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine($"Found a connection string - using {nameof(AzureTableRoutingDataStore)}");
-                _routingDataStore = new AzureTableRoutingDataStore(connectionString);
+                _logger.LogDebug($"Found a connection string - using {nameof(AzureTableRoutingDataStore)}");
+                _routingDataStore = new AzureTableRoutingDataStore(connectionString, new Underscore.Bot.MessageRouting.Logging.ConsoleLogger(loggerFactory.CreateLogger<AzureTableRoutingDataStore>()));
             }
 
             _timeout = TimeSpan.FromSeconds(Double.Parse(configuration[KeyConversationTimeout] ?? "3600"));
+            _logger.LogInformation($"Bot Conversation Timeout set to {_timeout.ToString()}");
 
             _messageRouter = new MessageRouter(
                _routingDataStore,
-               new MicrosoftAppCredentials(configuration["MicrosoftAppId"], configuration["MicrosoftAppPassword"]));
+               new MicrosoftAppCredentials(configuration["MicrosoftAppId"], configuration["MicrosoftAppPassword"]),
+                logger: new Underscore.Bot.MessageRouting.Logging.ConsoleLogger(loggerFactory.CreateLogger<MessageRouter>()));
 
             _endOfConversationActivity = Activity.CreateMessageActivity();
             _endOfConversationActivity.Type = ActivityTypes.EndOfConversation;
@@ -58,10 +63,14 @@ namespace Intermediator.Middleware
             {
                 var connections = _routingDataStore.GetConnections();
                 var elapsedConnections = connections.Where(q => DateTime.UtcNow - q.TimeSinceLastActivity >= _timeout);
-
+#if DEBUG
+                _logger.LogDebug($"{connections.Count} connections. {elapsedConnections.Count()} inactive.");
+#endif
                 
                 foreach (var conn in elapsedConnections)
                 {
+                    _logger.LogDebug($"Disconnecting {conn}");
+
                     if (!conn.ConversationReference1.User.Id.Equals(activity.From.Id) || !conn.ConversationReference2.User.Id.Equals(activity.From.Id))
                     {
                         await Disconnect(conn.ConversationReference1);

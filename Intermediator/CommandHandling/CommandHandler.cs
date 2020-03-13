@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Underscore.Bot.MessageRouting;
 using Underscore.Bot.MessageRouting.DataStore;
+using Underscore.Bot.MessageRouting.Logging;
 using Underscore.Bot.MessageRouting.Models;
 using Underscore.Bot.MessageRouting.Results;
 
@@ -23,6 +24,7 @@ namespace Intermediator.CommandHandling
         private MessageRouterResultHandler _messageRouterResultHandler;
         private ConnectionRequestHandler _connectionRequestHandler;
         private IList<string> _permittedAggregationChannels;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Constructor.
@@ -37,12 +39,14 @@ namespace Intermediator.CommandHandling
             MessageRouter messageRouter,
             MessageRouterResultHandler messageRouterResultHandler,
             ConnectionRequestHandler connectionRequestHandler,
-            IList<string> permittedAggregationChannels = null)
+            IList<string> permittedAggregationChannels = null,
+            ILogger logger = null)
         {
             _messageRouter = messageRouter;
             _messageRouterResultHandler = messageRouterResultHandler;
             _connectionRequestHandler = connectionRequestHandler;
             _permittedAggregationChannels = permittedAggregationChannels;
+            _logger = logger;
         }
 
         /// <summary>
@@ -319,7 +323,7 @@ namespace Intermediator.CommandHandling
                     }
                     catch (ArgumentOutOfRangeException e)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Failed to check if bot was mentioned: {e.Message}");
+                        _logger?.LogError($"Failed to check if bot was mentioned: {e.Message}");
                     }
                 }
             }

@@ -44,5 +44,15 @@ namespace Intermediator.Logging
                 System.Diagnostics.Debug.WriteLine(message);
             }
         }
+
+        public void LogError(string message, [CallerMemberName] string methodName = "")
+        {
+            Log(message, methodName);
+        }
+
+        public void LogInformation(string message, [CallerMemberName] string methodName = "")
+        {
+            Log(message, methodName);
+        }
     }
 }

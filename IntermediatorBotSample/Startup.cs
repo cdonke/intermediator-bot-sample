@@ -11,6 +11,7 @@ using Microsoft.Bot.Builder.TraceExtensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using Microsoft.Extensions.Logging;
 
 namespace IntermediatorBotSample
 {
@@ -20,6 +21,7 @@ namespace IntermediatorBotSample
         {
             get;
         }
+        public ILoggerFactory LoggerFactory { get; private set; }
 
         public Startup(IHostingEnvironment env)
         {
@@ -41,8 +43,7 @@ namespace IntermediatorBotSample
         {
             services.AddMvc().AddControllersAsServices();
             services.AddSingleton(_ => Configuration);
-
-
+            
             // Create the storage we'll be using for User and Conversation state. (Memory is great for testing purposes.)
             services.AddSingleton<IStorage, MemoryStorage>();
 
@@ -95,7 +96,8 @@ namespace IntermediatorBotSample
                 // IStorage dataStore = new Microsoft.Bot.Builder.Azure.AzureBlobStorage("AzureBlobConnectionString", "containerName");
 
                 // Handoff middleware
-                options.Middleware.Add(new Middleware.HandoffMiddleware(Configuration));
+                options.Middleware.Add(new Intermediator.Middleware.TimeoutMiddleware(Configuration, LoggerFactory));
+                options.Middleware.Add(new Middleware.HandoffMiddleware(Configuration, LoggerFactory));
             });
 
             services.AddMvc(); // Required Razor pages
@@ -107,12 +109,14 @@ namespace IntermediatorBotSample
         /// </summary>
         /// <param name="app"></param>
         /// <param name="env"></param>
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            LoggerFactory = loggerFactory;
 
             app.UseDefaultFiles()
                 .UseStaticFiles()

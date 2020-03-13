@@ -5,6 +5,7 @@ using Microsoft.Bot.Builder;
 using Microsoft.Bot.Connector.Authentication;
 using Microsoft.Bot.Schema;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +23,7 @@ namespace Intermediator.Middleware
         private const string KeyRejectConnectionRequestIfNoAggregationChannel = "RejectConnectionRequestIfNoAggregationChannel";
         private const string KeyPermittedAggregationChannels = "PermittedAggregationChannels";
         private const string KeyNoDirectConversationsWithChannels = "NoDirectConversationsWithChannels";
+        private readonly ILogger _logger;
 
         public IConfiguration Configuration
         {
@@ -53,26 +55,31 @@ namespace Intermediator.Middleware
             protected set;
         }
 
-        public HandoffMiddlewareBase(IConfiguration configuration)
+        public HandoffMiddlewareBase(IConfiguration configuration, ILoggerFactory loggerFactory)
         {
             Configuration = configuration;
+            _logger = loggerFactory.CreateLogger<HandoffMiddlewareBase>();
+
             string connectionString = Configuration[KeyAzureTableStorageConnectionString];
             IRoutingDataStore routingDataStore = null;
 
             if (string.IsNullOrEmpty(connectionString))
             {
-                System.Diagnostics.Debug.WriteLine($"WARNING!!! No connection string found - using {nameof(InMemoryRoutingDataStore)}");
+                _logger.LogDebug($"WARNING!!! No connection string found - using {nameof(InMemoryRoutingDataStore)}");
                 routingDataStore = new InMemoryRoutingDataStore();
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine($"Found a connection string - using {nameof(AzureTableRoutingDataStore)}");
-                routingDataStore = new AzureTableRoutingDataStore(connectionString);
+                _logger.LogDebug($"Found a connection string - using {nameof(AzureTableRoutingDataStore)}");
+                routingDataStore = new AzureTableRoutingDataStore(connectionString,
+                    new Underscore.Bot.MessageRouting.Logging.ConsoleLogger(loggerFactory.CreateLogger<AzureTableRoutingDataStore>()));
             }
 
             MessageRouter = new MessageRouter(
                 routingDataStore,
-                new MicrosoftAppCredentials(Configuration["MicrosoftAppId"], Configuration["MicrosoftAppPassword"]));
+                new MicrosoftAppCredentials(Configuration["MicrosoftAppId"], Configuration["MicrosoftAppPassword"]),
+                logger: new Underscore.Bot.MessageRouting.Logging.ConsoleLogger(loggerFactory.CreateLogger<MessageRouter>())
+                );
 
             //MessageRouter.Logger = new Logging.AggregationChannelLogger(MessageRouter);
 
@@ -85,9 +92,10 @@ namespace Intermediator.Middleware
                 MessageRouter,
                 MessageRouterResultHandler,
                 connectionRequestHandler,
-                GetChannelList(KeyPermittedAggregationChannels));
+                GetChannelList(KeyPermittedAggregationChannels),
+                new Underscore.Bot.MessageRouting.Logging.ConsoleLogger(loggerFactory.CreateLogger<CommandHandler>()));
 
-            MessageLogs = new MessageLogs(connectionString);
+            MessageLogs = new MessageLogs(connectionString, new Underscore.Bot.MessageRouting.Logging.ConsoleLogger(loggerFactory.CreateLogger<MessageLogs>()));
         }
 
         public abstract Task<bool> ShouldHandleToHumanAsync(ITurnContext turnContext, Activity activity);
@@ -175,7 +183,7 @@ namespace Intermediator.Middleware
 
             if (!string.IsNullOrWhiteSpace(channels))
             {
-                System.Diagnostics.Debug.WriteLine($"Channels by key \"{key}\": {channels}");
+                _logger.LogDebug($"Channels by key \"{key}\": {channels}");
                 string[] channelArray = channels.Split(',');
 
                 if (channelArray.Length > 0)
@@ -190,7 +198,7 @@ namespace Intermediator.Middleware
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine($"No channels defined by key \"{key}\" in app settings");
+                _logger.LogDebug($"No channels defined by key \"{key}\" in app settings");
             }
 
             return channelList;

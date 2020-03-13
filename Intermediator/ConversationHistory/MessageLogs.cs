@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Underscore.Bot.MessageRouting.DataStore;
 using Underscore.Bot.MessageRouting.DataStore.Azure;
+using Underscore.Bot.MessageRouting.Logging;
 
 namespace Intermediator.ConversationHistory
 {
@@ -16,24 +17,28 @@ namespace Intermediator.ConversationHistory
 
         private CloudTable _messageLogsTable;
         private readonly IList<MessageLog> _inMemoryMessageLogs;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="connectionString">The connection string for Azure Table Storage.</param>
-        public MessageLogs(string connectionString)
+        public MessageLogs(string connectionString, Underscore.Bot.MessageRouting.Logging.ILogger logger)
         {
+            _logger = logger;
+
             if (string.IsNullOrEmpty(connectionString))
             {
-                System.Diagnostics.Debug.WriteLine("WARNING!!! No connection string - storing message logs in memory");
+                _logger.LogError("WARNING!!! No connection string - storing message logs in memory");
                 _inMemoryMessageLogs = new List<MessageLog>();
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("Using Azure Table Storage for storing message logs");
+                _logger.LogInformation("Using Azure Table Storage for storing message logs");
                 _messageLogsTable = AzureStorageHelper.GetTable(connectionString, MessageLogsTableName);
                 MakeSureConversationHistoryTableExistsAsync().Wait();
             }
+
         }
 
         /// <returns>All the message logs.</returns>
@@ -118,11 +123,11 @@ namespace Intermediator.ConversationHistory
             try
             {
                 await _messageLogsTable.CreateIfNotExistsAsync();
-                System.Diagnostics.Debug.WriteLine($"Table '{_messageLogsTable.Name}' created or did already exist");
+                _logger.LogInformation($"Table '{_messageLogsTable.Name}' created or did already exist");
             }
             catch (StorageException e)
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to create table '{_messageLogsTable.Name}' (perhaps it already exists): {e.Message}");
+                _logger.LogError($"Failed to create table '{_messageLogsTable.Name}' (perhaps it already exists): {e.Message}");
             }
         }
 
